@@ -2,7 +2,6 @@
 
 export interface KwitConfig {
 	apiKey: string;
-	baseUrl?: string;
 	maxRetries?: number;
 	timeout?: number;
 }
@@ -131,33 +130,137 @@ export interface Invoice {
 export interface CreateCheckoutParams {
 	customerId: string;
 	priceId: string;
-	quantity?: number;
 	successUrl?: string;
 	cancelUrl?: string;
 	metadata?: Record<string, unknown>;
 }
 
-export interface CheckoutResult {
-	subscription: Subscription;
-	invoice: Invoice;
-	successUrl: string;
-	cancelUrl: string;
+export type CheckoutSessionStatus = "OPEN" | "COMPLETE" | "EXPIRED";
+
+export type PaymentProvider = "ZAHLS" | "MANUAL";
+
+export type PaymentStatus = "PENDING" | "SUCCEEDED" | "FAILED" | "REFUNDED" | "PARTIALLY_REFUNDED";
+
+export type CheckoutSessionPriceBillingInterval =
+	| "DAILY"
+	| "WEEKLY"
+	| "MONTHLY"
+	| "QUARTERLY"
+	| "YEARLY"
+	| "ONE_TIME";
+
+export interface CheckoutSessionInvoiceLineItem {
+	id: string;
+	invoiceId: string;
+	description: string;
+	quantity: string;
+	unitAmount: string;
+	amount: string;
+	priceId: string | null;
+	metadata: Record<string, unknown> | null;
 }
 
-export type CheckoutSessionStatus = "OPEN" | "COMPLETE" | "EXPIRED";
+export interface CheckoutSessionPayment {
+	id: string;
+	organizationId: string;
+	invoiceId: string;
+	amount: string;
+	currency: string;
+	provider: PaymentProvider;
+	providerPaymentId: string | null;
+	status: PaymentStatus;
+	metadata: Record<string, unknown> | null;
+	createdAt: string;
+}
+
+export interface CheckoutSessionInvoice {
+	id: string;
+	organizationId: string;
+	customerId: string;
+	subscriptionId: string | null;
+	number: string;
+	status: InvoiceStatus;
+	collectionMethod: CollectionMethod;
+	currency: string;
+	subtotal: string;
+	tax: string;
+	total: string;
+	amountPaid: string;
+	amountDue: string;
+	dueDate: string;
+	paidAt: string | null;
+	hostedUrl: string | null;
+	metadata: Record<string, unknown> | null;
+	createdAt: string;
+	updatedAt: string;
+	lineItems: CheckoutSessionInvoiceLineItem[];
+	payments: CheckoutSessionPayment[];
+}
+
+export type CheckoutCreatedInvoice = Omit<CheckoutSessionInvoice, "payments">;
+
+export interface CheckoutResult {
+	sessionId: string;
+	checkoutUrl: string;
+	invoice: CheckoutCreatedInvoice;
+}
+
+export interface CheckoutSessionPrice {
+	id: string;
+	productId: string;
+	nickname: string | null;
+	type: PriceType;
+	currency: string;
+	amount: string;
+	billingInterval: CheckoutSessionPriceBillingInterval;
+	intervalCount: number;
+	trialDays: number | null;
+	active: boolean;
+	metadata: Record<string, unknown> | null;
+	lookupKey: string | null;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface CheckoutSessionSubscription {
+	id: string;
+	organizationId: string;
+	customerId: string;
+	status: SubscriptionStatus;
+	priceId: string;
+	authorizedTransactionId: string | null;
+	currentPeriodStart: string;
+	currentPeriodEnd: string;
+	cancelAtPeriodEnd: boolean;
+	canceledAt: string | null;
+	trialStart: string | null;
+	trialEnd: string | null;
+	metadata: Record<string, unknown> | null;
+	createdAt: string;
+	updatedAt: string;
+	price: CheckoutSessionPrice;
+}
 
 export interface CheckoutSession {
 	id: string;
-	status: CheckoutSessionStatus;
+	organizationId: string;
 	customerId: string;
-	priceId: string;
 	invoiceId: string;
 	subscriptionId: string | null;
+	priceId: string;
+	status: CheckoutSessionStatus;
+	providerGatewayId: string;
+	checkoutUrl: string;
 	successUrl: string | null;
 	cancelUrl: string | null;
-	metadata: Record<string, unknown> | null;
+	expiresAt: string;
 	completedAt: string | null;
+	metadata: Record<string, unknown> | null;
 	createdAt: string;
+	updatedAt: string;
+	invoice: CheckoutSessionInvoice;
+	subscription: CheckoutSessionSubscription | null;
+	customer: Customer;
 }
 
 // ─── Webhook Events ──────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { Checkout } from "./resources/checkout";
 import { Webhooks } from "./resources/webhooks";
 import type { KwitConfig } from "./types";
 
-const DEFAULT_BASE_URL = "https://api.kwit.dev/v1";
+const BASE_URL = "https://api.kwit.dev/v1";
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_TIMEOUT_MS = 30_000;
 
@@ -18,7 +18,7 @@ export class Kwit {
 			typeof apiKeyOrConfig === "string" ? { apiKey: apiKeyOrConfig } : apiKeyOrConfig;
 
 		const http = new HttpClient({
-			baseUrl: config.baseUrl ?? DEFAULT_BASE_URL,
+			baseUrl: BASE_URL,
 			apiKey: config.apiKey,
 			maxRetries: config.maxRetries ?? DEFAULT_MAX_RETRIES,
 			timeout: config.timeout ?? DEFAULT_TIMEOUT_MS,

@@ -4,15 +4,25 @@ import type { WebhookEvent, WebhookEventType } from "../types";
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 
 export class Webhooks {
+	/**
+	 * Verify and parse an incoming Kwit webhook request.
+	 *
+	 * @param payload  - The raw request body (string or Buffer)
+	 * @param signatureHeader - The `Kwit-Signature` header value (`t=...,v1=...`)
+	 * @param eventHeader - The `Kwit-Event` header value (e.g. `customer.created`)
+	 * @param secret - Your webhook endpoint secret
+	 * @param toleranceInSeconds - Max age of the signature in seconds (default 300)
+	 */
 	verify(
 		payload: string | Buffer,
-		header: string,
+		signatureHeader: string,
+		eventHeader: string,
 		secret: string,
 		toleranceInSeconds = SIGNATURE_TOLERANCE_SECONDS,
 	): WebhookEvent {
 		const body = typeof payload === "string" ? payload : payload.toString("utf8");
 
-		const { timestamp, signature } = parseSignatureHeader(header);
+		const { timestamp, signature } = parseSignatureHeader(signatureHeader);
 
 		const now = Math.floor(Date.now() / 1000);
 		if (Math.abs(now - timestamp) > toleranceInSeconds) {
@@ -25,11 +35,9 @@ export class Webhooks {
 			throw new Error("Invalid webhook signature");
 		}
 
-		const parsed = JSON.parse(body);
-
 		return {
-			type: parsed.type as WebhookEventType,
-			payload: parsed.payload ?? parsed,
+			type: eventHeader as WebhookEventType,
+			payload: JSON.parse(body),
 			timestamp,
 		};
 	}
