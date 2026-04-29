@@ -1,6 +1,7 @@
 import { HttpClient } from "./lib/http-client";
 import { Customers } from "./resources/customers";
 import { Checkout } from "./resources/checkout";
+import { Portal } from "./resources/portal";
 import { Webhooks } from "./resources/webhooks";
 import type { KwitConfig } from "./types";
 
@@ -11,6 +12,7 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 export class Kwit {
 	readonly customers: Customers;
 	readonly checkout: Checkout;
+	readonly portal: Portal;
 	readonly webhooks: Webhooks;
 
 	constructor(apiKeyOrConfig: string | KwitConfig) {
@@ -26,6 +28,7 @@ export class Kwit {
 
 		this.customers = new Customers(http);
 		this.checkout = new Checkout(http);
+		this.portal = new Portal(http);
 		this.webhooks = new Webhooks();
 	}
 }

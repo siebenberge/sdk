@@ -263,6 +263,19 @@ export interface CheckoutSession {
 	customer: Customer;
 }
 
+// ─── Portal ──────────────────────────────────────────────────────────────────
+
+export interface CreatePortalSessionParams {
+	customerId: string;
+	returnUrl?: string;
+}
+
+export interface PortalSession {
+	sessionId: string;
+	url: string;
+	expiresAt: string;
+}
+
 // ─── Webhook Events ──────────────────────────────────────────────────────────
 
 export const WEBHOOK_EVENTS = [

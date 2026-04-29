@@ -28,6 +28,8 @@ export type {
 	CheckoutSessionPrice,
 	CheckoutSessionSubscription,
 	CheckoutSession,
+	CreatePortalSessionParams,
+	PortalSession,
 	WebhookEventType,
 	WebhookEvent,
 	KwitErrorResponse,

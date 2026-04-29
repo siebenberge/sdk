@@ -148,6 +148,41 @@ console.log(session.status); // "OPEN" | "COMPLETE" | "EXPIRED"
 
 ---
 
+## Customer Portal
+
+### `kwit.portal.sessions.create(params)`
+
+Create a short-lived portal session for an existing customer. Redirect them to the
+returned `url` so they can update their contact info, manage subscriptions, and edit
+billing details on a Kwit-hosted page.
+
+```typescript
+const portal = await kwit.portal.sessions.create({
+  customerId: "a1b2c3d4-...",
+  returnUrl: "https://your-app.com/account",
+});
+
+console.log(portal.url);       // https://kwit.dev/portal/ps_xxx (valid 1h)
+console.log(portal.expiresAt); // ISO timestamp
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `customerId` | `string` | Yes | UUID of an existing customer |
+| `returnUrl` | `string` | No | URL the portal can link back to (e.g. your account page) |
+
+**Returns** → `PortalSession`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sessionId` | `string` | Created portal session ID |
+| `url` | `string` | Hosted portal URL — redirect your customer here |
+| `expiresAt` | `string` | ISO timestamp when the session token stops working |
+
+---
+
 ## Webhooks
 
 Kwit sends webhook events to your registered endpoints with an HMAC-SHA256 signature for verification.
@@ -290,6 +325,7 @@ try {
 5. Your backend:  kwit.checkout.create(...)         → subscription + invoice created
 6. Kwit:          Notifies your app via webhook (customer.created, subscription.created)
 7. Kwit:          Handles renewals, invoice generation, and payment collection
+8. Your backend:  kwit.portal.sessions.create(...) → redirect URL for self-service
 ```
 
 ---
@@ -307,6 +343,8 @@ import type {
   CheckoutResult,
   CheckoutCreatedInvoice,
   CheckoutSession,
+  CreatePortalSessionParams,
+  PortalSession,
   WebhookEvent,
   WebhookEventType,
   Address,
