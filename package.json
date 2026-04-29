@@ -1,6 +1,5 @@
 {
 	"name": "@kwit/sdk",
-	"private": true,
 	"version": "0.1.4",
 	"description": "Official TypeScript SDK for the Kwit billing API",
 	"type": "module",
