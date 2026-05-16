@@ -17,8 +17,19 @@ export class HttpClient {
 		this.config = config;
 	}
 
-	async get<T>(path: string): Promise<T> {
-		return this.request<T>("GET", path);
+	async get<T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
+		let fullPath = path;
+		if (params) {
+			const searchParams = new URLSearchParams();
+			for (const [key, value] of Object.entries(params)) {
+				if (value !== undefined) {
+					searchParams.set(key, String(value));
+				}
+			}
+			const qs = searchParams.toString();
+			if (qs) fullPath = `${path}?${qs}`;
+		}
+		return this.request<T>("GET", fullPath);
 	}
 
 	async post<T>(path: string, body?: object): Promise<T> {
@@ -29,8 +40,8 @@ export class HttpClient {
 		return this.request<T>("PATCH", path, body);
 	}
 
-	async delete<T>(path: string): Promise<T> {
-		return this.request<T>("DELETE", path);
+	async delete(path: string): Promise<void> {
+		return this.request<void>("DELETE", path);
 	}
 
 	private async request<T>(method: string, path: string, body?: object): Promise<T> {
@@ -50,6 +61,9 @@ export class HttpClient {
 				});
 
 				if (response.ok) {
+					if (response.status === 204) {
+						return undefined as T;
+					}
 					return (await response.json()) as T;
 				}
 

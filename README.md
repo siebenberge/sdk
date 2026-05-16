@@ -121,9 +121,11 @@ console.log(result.invoice.number);    // INV-0001
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `customerId` | `string` | Yes | UUID of an existing customer |
-| `priceId` | `string` | Yes | UUID of the price to subscribe to |
+| `productId` | `string` | Yes | UUID of the product to subscribe to |
+| `checkoutLinkId` | `string` | No | UUID of a checkout link to associate |
 | `successUrl` | `string` | No | URL to redirect after successful checkout |
 | `cancelUrl` | `string` | No | URL to redirect if checkout is canceled |
+| `discountId` | `string` | No | UUID of a discount to apply |
 | `metadata` | `object` | No | Arbitrary key-value pairs |
 
 **Returns** → `CheckoutResult`
@@ -180,6 +182,240 @@ console.log(portal.expiresAt); // ISO timestamp
 | `sessionId` | `string` | Created portal session ID |
 | `url` | `string` | Hosted portal URL — redirect your customer here |
 | `expiresAt` | `string` | ISO timestamp when the session token stops working |
+
+---
+
+## Products
+
+### `kwit.products.create(params)`
+
+Create a new product with pricing.
+
+```typescript
+const product = await kwit.products.create({
+  name: "Pro Plan",
+  type: "FLAT",
+  currency: "CHF",
+  amount: 7900,
+  billingInterval: "MONTHLY",
+});
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | Yes | Product display name |
+| `description` | `string` | No | Product description |
+| `type` | `string` | Yes | Price type: `"FLAT"`, `"PER_UNIT"`, `"TIERED"`, `"VOLUME"` |
+| `currency` | `string` | Yes | 3-letter ISO currency code |
+| `amount` | `number` | Yes | Price amount in smallest currency unit (e.g. cents) |
+| `billingInterval` | `string` | Yes | `"DAILY"`, `"WEEKLY"`, `"MONTHLY"`, `"QUARTERLY"`, `"YEARLY"`, `"ONE_TIME"` |
+| `intervalCount` | `number` | No | Number of intervals between billings |
+| `trialDays` | `number \| null` | No | Number of trial days |
+| `active` | `boolean` | No | Whether the product is active |
+| `metadata` | `object` | No | Arbitrary key-value pairs |
+| `lookupKey` | `string` | No | Unique key for programmatic lookup |
+
+**Returns** → `Product`
+
+### `kwit.products.retrieve(id)`
+
+Retrieve a product by its ID.
+
+```typescript
+const product = await kwit.products.retrieve("product-uuid");
+```
+
+**Returns** → `Product`
+
+### `kwit.products.list(params?)`
+
+List products with optional filtering and pagination.
+
+```typescript
+const { data, total, page, perPage } = await kwit.products.list({
+  active: true,
+  page: 1,
+  perPage: 20,
+});
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `active` | `boolean` | No | Filter by active status |
+| `page` | `number` | No | Page number |
+| `perPage` | `number` | No | Items per page |
+
+**Returns** → `ProductListResult`
+
+---
+
+## Discounts
+
+### `kwit.discounts.create(params)`
+
+Create a discount (coupon) that can be applied to checkouts and subscriptions.
+
+```typescript
+const discount = await kwit.discounts.create({
+  name: "Launch 20%",
+  code: "LAUNCH20",
+  type: "PERCENTAGE",
+  value: 20,
+  duration: "REPEATING",
+  durationInMonths: 3,
+});
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | Yes | Discount display name |
+| `code` | `string` | No | Promo code customers can enter |
+| `type` | `string` | Yes | `"PERCENTAGE"` or `"FIXED"` |
+| `value` | `number` | Yes | Discount value (percentage or fixed amount) |
+| `duration` | `string` | Yes | `"ONCE"`, `"REPEATING"`, or `"FOREVER"` |
+| `durationInMonths` | `number` | No | Required when duration is `"REPEATING"` |
+| `maxRedemptions` | `number` | No | Maximum number of times this discount can be used |
+| `startsAt` | `string` | No | ISO timestamp when the discount becomes valid |
+| `endsAt` | `string` | No | ISO timestamp when the discount expires |
+| `productIds` | `string[]` | No | Restrict discount to specific product IDs |
+| `active` | `boolean` | No | Whether the discount is active |
+| `metadata` | `object` | No | Arbitrary key-value pairs |
+
+**Returns** → `Discount`
+
+### `kwit.discounts.retrieve(id)`
+
+Retrieve a discount by its ID.
+
+```typescript
+const discount = await kwit.discounts.retrieve("discount-uuid");
+```
+
+**Returns** → `Discount`
+
+### `kwit.discounts.validate(params)`
+
+Validate a discount code and return the resolved discount if valid.
+
+```typescript
+const discount = await kwit.discounts.validate({
+  code: "LAUNCH20",
+  productId: "product-uuid",
+});
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | `string` | Yes | The discount code to validate |
+| `productId` | `string` | No | Product ID to check discount applicability |
+
+**Returns** → `Discount` (or throws 404 if invalid)
+
+---
+
+## Subscriptions
+
+### `kwit.subscriptions.create(params)`
+
+Create a subscription for a customer directly (without a checkout session).
+
+```typescript
+const subscription = await kwit.subscriptions.create({
+  customerId: "customer-uuid",
+  productId: "product-uuid",
+  discountId: "discount-uuid",
+});
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `customerId` | `string` | Yes | UUID of an existing customer |
+| `productId` | `string` | Yes | UUID of the product to subscribe to |
+| `authorizedTransactionId` | `string` | No | Pre-authorized transaction ID |
+| `startAt` | `string` | No | ISO timestamp for delayed start |
+| `discountId` | `string` | No | UUID of a discount to apply |
+| `metadata` | `object` | No | Arbitrary key-value pairs |
+
+**Returns** → `Subscription`
+
+### `kwit.subscriptions.retrieve(id)`
+
+Retrieve a subscription by its ID.
+
+```typescript
+const subscription = await kwit.subscriptions.retrieve("subscription-uuid");
+```
+
+**Returns** → `Subscription`
+
+### `kwit.subscriptions.cancel(id, params?)`
+
+Cancel a subscription immediately or at the end of the current billing period.
+
+```typescript
+const subscription = await kwit.subscriptions.cancel("subscription-uuid", {
+  atPeriodEnd: true,
+});
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `atPeriodEnd` | `boolean` | No | If `true`, cancel at end of period instead of immediately |
+
+**Returns** → `Subscription`
+
+---
+
+## Checkout Links
+
+### `kwit.checkoutLinks.create(params)`
+
+Create a reusable, shareable checkout link for one or more products.
+
+```typescript
+const link = await kwit.checkoutLinks.create({
+  label: "Pro Plan Checkout",
+  productIds: ["product-uuid-1"],
+  successUrl: "https://your-app.com/success",
+  discountId: "discount-uuid",
+});
+```
+
+**Parameters**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | `string` | Yes | Display label for the checkout link |
+| `productIds` | `string[]` | Yes | Product IDs included in this checkout |
+| `successUrl` | `string` | No | URL to redirect after successful checkout |
+| `returnUrl` | `string` | No | URL to redirect if customer cancels |
+| `active` | `boolean` | No | Whether the link is active |
+| `discountId` | `string \| null` | No | UUID of a discount to auto-apply |
+| `metadata` | `object` | No | Arbitrary key-value pairs |
+
+**Returns** → `CheckoutLink`
+
+### `kwit.checkoutLinks.retrieve(id)`
+
+Retrieve a checkout link by its ID.
+
+```typescript
+const link = await kwit.checkoutLinks.retrieve("checkout-link-uuid");
+```
+
+**Returns** → `CheckoutLink`
 
 ---
 
@@ -318,14 +554,15 @@ try {
 ## Typical Integration Flow
 
 ```
-1. Dashboard:     Create a Product (e.g. "Pro Plan")
-2. Dashboard:     Add a Price to the product (e.g. USD 79/month)
-3. Dashboard:     Create an API Key
-4. Your backend:  kwit.customers.create(...)       → get customer ID
-5. Your backend:  kwit.checkout.create(...)         → subscription + invoice created
-6. Kwit:          Notifies your app via webhook (customer.created, subscription.created)
-7. Kwit:          Handles renewals, invoice generation, and payment collection
-8. Your backend:  kwit.portal.sessions.create(...) → redirect URL for self-service
+1. Your backend:  kwit.products.create(...)          → create a product with pricing
+2. Your backend:  kwit.discounts.create(...)          → optionally create a discount
+3. Your backend:  kwit.customers.create(...)          → get customer ID
+4. Your backend:  kwit.checkout.create(...)            → checkout session + invoice created
+   OR:           kwit.subscriptions.create(...)       → subscribe directly
+   OR:           kwit.checkoutLinks.create(...)       → create a shareable checkout link
+5. Kwit:          Notifies your app via webhook
+6. Kwit:          Handles renewals, invoice generation, and payment collection
+7. Your backend:  kwit.portal.sessions.create(...)    → redirect URL for self-service
 ```
 
 ---
@@ -349,6 +586,18 @@ import type {
   WebhookEventType,
   Address,
   Price,
+  Product,
+  CreateProductParams,
+  ProductListResult,
+  ListProductsParams,
+  Discount,
+  CreateDiscountParams,
+  ValidateDiscountParams,
+  CreateSubscriptionParams,
+  CheckoutLink,
+  CreateCheckoutLinkParams,
+  DiscountType,
+  DiscountDuration,
 } from "@kwit/sdk";
 ```
 

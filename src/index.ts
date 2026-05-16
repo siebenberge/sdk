@@ -33,5 +33,17 @@ export type {
 	WebhookEventType,
 	WebhookEvent,
 	KwitErrorResponse,
+	DiscountType,
+	DiscountDuration,
+	CreateProductParams,
+	Product,
+	ProductListResult,
+	ListProductsParams,
+	CreateDiscountParams,
+	Discount,
+	ValidateDiscountParams,
+	CreateSubscriptionParams,
+	CreateCheckoutLinkParams,
+	CheckoutLink,
 } from "./kwit/types";
 export { WEBHOOK_EVENTS } from "./kwit/types";

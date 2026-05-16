@@ -3,6 +3,10 @@ import { Customers } from "./resources/customers";
 import { Checkout } from "./resources/checkout";
 import { Portal } from "./resources/portal";
 import { Webhooks } from "./resources/webhooks";
+import { Products } from "./resources/products";
+import { Discounts } from "./resources/discounts";
+import { Subscriptions } from "./resources/subscriptions";
+import { CheckoutLinks } from "./resources/checkout-links";
 import type { KwitConfig } from "./types";
 
 const BASE_URL = "https://api.kwit.dev/v1";
@@ -14,6 +18,10 @@ export class Kwit {
 	readonly checkout: Checkout;
 	readonly portal: Portal;
 	readonly webhooks: Webhooks;
+	readonly products: Products;
+	readonly discounts: Discounts;
+	readonly subscriptions: Subscriptions;
+	readonly checkoutLinks: CheckoutLinks;
 
 	constructor(apiKeyOrConfig: string | KwitConfig) {
 		const config: KwitConfig =
@@ -30,6 +38,10 @@ export class Kwit {
 		this.checkout = new Checkout(http);
 		this.portal = new Portal(http);
 		this.webhooks = new Webhooks();
+		this.products = new Products(http);
+		this.discounts = new Discounts(http);
+		this.subscriptions = new Subscriptions(http);
+		this.checkoutLinks = new CheckoutLinks(http);
 	}
 }
 

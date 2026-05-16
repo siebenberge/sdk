@@ -50,7 +50,7 @@ export interface Customer {
 // ─── Price ───────────────────────────────────────────────────────────────────
 
 export type PriceType = "FLAT" | "PER_UNIT" | "TIERED" | "VOLUME";
-export type BillingInterval = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+export type BillingInterval = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY" | "ONE_TIME";
 
 export interface Price {
 	id: string;
@@ -75,7 +75,7 @@ export type SubscriptionStatus =
 
 export interface SubscriptionItem {
 	id: string;
-	priceId: string;
+	productId: string;
 	quantity: number;
 	price: Price;
 }
@@ -129,9 +129,11 @@ export interface Invoice {
 
 export interface CreateCheckoutParams {
 	customerId: string;
-	priceId: string;
+	productId: string;
+	checkoutLinkId?: string;
 	successUrl?: string;
 	cancelUrl?: string;
+	discountId?: string;
 	metadata?: Record<string, unknown>;
 }
 
@@ -156,7 +158,7 @@ export interface CheckoutSessionInvoiceLineItem {
 	quantity: string;
 	unitAmount: string;
 	amount: string;
-	priceId: string | null;
+	productId: string | null;
 	metadata: Record<string, unknown> | null;
 }
 
@@ -227,7 +229,7 @@ export interface CheckoutSessionSubscription {
 	organizationId: string;
 	customerId: string;
 	status: SubscriptionStatus;
-	priceId: string;
+	productId: string;
 	authorizedTransactionId: string | null;
 	currentPeriodStart: string;
 	currentPeriodEnd: string;
@@ -247,7 +249,7 @@ export interface CheckoutSession {
 	customerId: string;
 	invoiceId: string;
 	subscriptionId: string | null;
-	priceId: string;
+	productId: string;
 	status: CheckoutSessionStatus;
 	providerGatewayId: string;
 	checkoutUrl: string;
@@ -299,6 +301,134 @@ export interface WebhookEvent<T = Record<string, unknown>> {
 	type: WebhookEventType;
 	payload: T;
 	timestamp: number;
+}
+
+// ─── Product ─────────────────────────────────────────────────────────────────
+
+export interface CreateProductParams {
+	name: string;
+	description?: string;
+	type: PriceType;
+	currency: string;
+	amount: number;
+	billingInterval: BillingInterval;
+	intervalCount?: number;
+	trialDays?: number | null;
+	active?: boolean;
+	metadata?: Record<string, unknown>;
+	lookupKey?: string;
+}
+
+export interface Product {
+	id: string;
+	organizationId: string;
+	name: string;
+	description: string | null;
+	type: PriceType;
+	currency: string;
+	amount: string;
+	billingInterval: BillingInterval;
+	intervalCount: number;
+	trialDays: number | null;
+	active: boolean;
+	metadata: Record<string, unknown> | null;
+	lookupKey: string | null;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ProductListResult {
+	data: Product[];
+	total: number;
+	page: number;
+	perPage: number;
+}
+
+export interface ListProductsParams {
+	active?: boolean;
+	page?: number;
+	perPage?: number;
+}
+
+// ─── Discount ────────────────────────────────────────────────────────────────
+
+export type DiscountType = "PERCENTAGE" | "FIXED";
+export type DiscountDuration = "ONCE" | "REPEATING" | "FOREVER";
+
+export interface CreateDiscountParams {
+	name: string;
+	code?: string;
+	type: DiscountType;
+	value: number;
+	duration: DiscountDuration;
+	durationInMonths?: number;
+	maxRedemptions?: number;
+	startsAt?: string;
+	endsAt?: string;
+	productIds?: string[];
+	active?: boolean;
+	metadata?: Record<string, string>;
+}
+
+export interface Discount {
+	id: string;
+	organizationId: string;
+	name: string;
+	code: string | null;
+	type: DiscountType;
+	value: string;
+	duration: DiscountDuration;
+	durationInMonths: number | null;
+	maxRedemptions: number | null;
+	redemptionCount: number;
+	startsAt: string | null;
+	endsAt: string | null;
+	active: boolean;
+	metadata: Record<string, string> | null;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ValidateDiscountParams {
+	code: string;
+	productId?: string;
+}
+
+// ─── Subscription Params ─────────────────────────────────────────────────────
+
+export interface CreateSubscriptionParams {
+	customerId: string;
+	productId: string;
+	authorizedTransactionId?: string;
+	startAt?: string;
+	discountId?: string;
+	metadata?: Record<string, unknown>;
+}
+
+// ─── Checkout Link ───────────────────────────────────────────────────────────
+
+export interface CreateCheckoutLinkParams {
+	label: string;
+	productIds: string[];
+	successUrl?: string;
+	returnUrl?: string;
+	active?: boolean;
+	discountId?: string | null;
+	metadata?: Record<string, unknown>;
+}
+
+export interface CheckoutLink {
+	id: string;
+	organizationId: string;
+	label: string;
+	slug: string;
+	successUrl: string | null;
+	returnUrl: string | null;
+	active: boolean;
+	discountId: string | null;
+	metadata: Record<string, unknown> | null;
+	createdAt: string;
+	updatedAt: string;
 }
 
 // ─── Error ───────────────────────────────────────────────────────────────────
