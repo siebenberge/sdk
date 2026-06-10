@@ -45,5 +45,16 @@ export type {
 	CreateSubscriptionParams,
 	CreateCheckoutLinkParams,
 	CheckoutLink,
+	MeterAggregation,
+	MeterUnit,
+	Meter,
+	CreateMeterParams,
+	UsageEventIngestItem,
+	UsageEvent,
+	IngestUsageEventsParams,
+	IngestUsageEventsResult,
+	ListUsageEventsParams,
+	UsageStateEntry,
+	GrantMeterCreditParams,
 } from "./kwit/types";
 export { WEBHOOK_EVENTS } from "./kwit/types";

@@ -7,6 +7,8 @@ import { Products } from "./resources/products";
 import { Discounts } from "./resources/discounts";
 import { Subscriptions } from "./resources/subscriptions";
 import { CheckoutLinks } from "./resources/checkout-links";
+import { Events } from "./resources/events";
+import { Meters } from "./resources/meters";
 import type { KwitConfig } from "./types";
 
 const BASE_URL = "https://api.kwit.dev/v1";
@@ -22,6 +24,8 @@ export class Kwit {
 	readonly discounts: Discounts;
 	readonly subscriptions: Subscriptions;
 	readonly checkoutLinks: CheckoutLinks;
+	readonly events: Events;
+	readonly meters: Meters;
 
 	constructor(apiKeyOrConfig: string | KwitConfig) {
 		const config: KwitConfig =
@@ -42,6 +46,8 @@ export class Kwit {
 		this.discounts = new Discounts(http);
 		this.subscriptions = new Subscriptions(http);
 		this.checkoutLinks = new CheckoutLinks(http);
+		this.events = new Events(http);
+		this.meters = new Meters(http);
 	}
 }
 

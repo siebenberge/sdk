@@ -15,4 +15,17 @@ export class Products {
 	async list(params?: ListProductsParams): Promise<ProductListResult> {
 		return this.http.get<ProductListResult>("/products", params as Record<string, string | number | boolean | undefined>);
 	}
+
+	async setMeterPrices(
+		id: string,
+		prices: Array<{
+			meterId: string;
+			model: "PER_UNIT" | "PACKAGE";
+			unitPrice: number;
+			includedUnits?: number;
+			capUnits?: number;
+		}>,
+	) {
+		return this.http.patch(`/products/${id}/meter-prices`, { prices });
+	}
 }

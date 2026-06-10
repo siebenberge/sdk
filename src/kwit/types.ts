@@ -290,6 +290,10 @@ export const WEBHOOK_EVENTS = [
 	"invoice.created",
 	"invoice.paid",
 	"invoice.voided",
+	"usage.event.ingested",
+	"usage.billed",
+	"meter.created",
+	"meter.updated",
 	"customer.created",
 	"customer.updated",
 	"customer.deleted",
@@ -429,6 +433,97 @@ export interface CheckoutLink {
 	metadata: Record<string, unknown> | null;
 	createdAt: string;
 	updatedAt: string;
+}
+
+// ─── Usage Billing ────────────────────────────────────────────────────────────
+
+export type MeterAggregation = "SUM" | "COUNT" | "MAX";
+export type MeterUnit = "REQUEST" | "TOKEN" | "MESSAGE" | "SECOND" | "BYTE" | "CUSTOM";
+
+export interface Meter {
+	id: string;
+	organizationId: string;
+	name: string;
+	code: string;
+	eventName: string;
+	description: string | null;
+	unit: MeterUnit;
+	aggregation: MeterAggregation;
+	active: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface CreateMeterParams {
+	name: string;
+	code: string;
+	eventName: string;
+	description?: string;
+	unit: MeterUnit;
+	aggregation: MeterAggregation;
+	active?: boolean;
+}
+
+export interface UsageEventIngestItem {
+	externalId: string;
+	customerId: string;
+	meterId: string;
+	subscriptionId?: string;
+	eventName?: string;
+	quantity: number;
+	occurredAt?: string;
+	metadata?: Record<string, string>;
+}
+
+export interface UsageEvent {
+	id: string;
+	organizationId: string;
+	customerId: string;
+	meterId: string;
+	subscriptionId: string | null;
+	externalId: string;
+	eventName: string;
+	quantity: string;
+	occurredAt: string;
+	metadata: Record<string, string> | null;
+	createdAt: string;
+}
+
+export interface IngestUsageEventsParams {
+	events: UsageEventIngestItem[];
+}
+
+export interface IngestUsageEventsResult {
+	accepted: string[];
+	duplicates: string[];
+	skipped: Array<{ externalId: string; reason: string }>;
+}
+
+export interface ListUsageEventsParams {
+	customerId?: string;
+	meterId?: string;
+	page?: number;
+	perPage?: number;
+}
+
+export interface UsageStateEntry {
+	meterId: string;
+	meterName: string;
+	meterCode: string;
+	unit: MeterUnit;
+	usageTotal: string;
+	remainingCredits: string;
+	periodStart: string | null;
+	periodEnd: string | null;
+	lastSyncedAt: string | null;
+}
+
+export interface GrantMeterCreditParams {
+	meterId: string;
+	amount: number;
+	expiresAt?: string;
+	source?: "MANUAL" | "SUBSCRIPTION_CYCLE" | "PROMOTIONAL";
+	note?: string;
 }
 
 // ─── Error ───────────────────────────────────────────────────────────────────
